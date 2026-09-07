@@ -1,0 +1,74 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# --- Virtual environments ---
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- Dataset (large media files, don't commit) ---
+dataset/raw/
+dataset/landmarks/
+*.mp4
+*.avi
+*.mov
+*.npy
+*.npz
+
+# Keep folder structure but ignore contents (optional pattern):
+# dataset/raw/*
+# !dataset/raw/.gitkeep
+
+# --- Model checkpoints / weights ---
+checkpoints/
+*.pt
+*.pth
+*.h5
+*.onnx
+*.pkl
+
+# --- Logs / experiment tracking ---
+logs/
+runs/
+wandb/
+*.log
+tensorboard/
+
+# --- Environment variables / secrets ---
+.env
+*.env.local
+config/secrets.yaml
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor/IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Streamlit ---
+.streamlit/secrets.toml
+
+# --- Misc ---
+*.tmp
+*.bak
+.cache/
+*placeholder.txt
