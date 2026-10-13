@@ -21,17 +21,24 @@ ENV/
 *.ipynb_checkpoints
 
 # --- Dataset (large media files, don't commit) ---
-dataset/raw/
+dataset/Indian/
+dataset/Training/
+dataset/Validation/
+dataset/Testing/
 dataset/landmarks/
+dataset/Letters/
 *.mp4
 *.avi
 *.mov
 *.npy
 *.npz
 
-# Keep folder structure but ignore contents (optional pattern):
-# dataset/raw/*
-# !dataset/raw/.gitkeep
+# Keep folder structure in git without committing images:
+# add a .gitkeep inside each folder and uncomment these
+!dataset/Indian/.gitkeep
+!dataset/Training/.gitkeep
+!dataset/Validation/.gitkeep
+!dataset/Testing/.gitkeep
 
 # --- Model checkpoints / weights ---
 checkpoints/
@@ -71,4 +78,3 @@ desktop.ini
 *.tmp
 *.bak
 .cache/
-*placeholder.txt
