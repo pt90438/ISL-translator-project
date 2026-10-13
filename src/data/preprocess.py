@@ -1,30 +1,18 @@
-import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-import cv2
-import os
-    
-def load_images(directory):
-    images = []
-    labels = []
-    outputs = 0
-    uniq_labels = sorted(os.listdir(directory))
+from tensorflow.keras import layers
 
-    for idx, label in enumerate(uniq_labels):
-        print(label, " is ready to load")
-        outputs = outputs + 1
-        for file in os.listdir(directory + "/" + label):
-            filepath = directory + "/" + label + "/" + file
-            image = cv2.resize(cv2.imread(filepath), (128, 128))
-            images.append(image)
-            labels.append(idx)
-    images = np.array(images)
-    labels = np.array(labels)
+# No RandomFlip: mirroring a hand shape can change the meaning of a sign.
+data_augmentation = tf.keras.Sequential(
+    [
+        layers.RandomRotation(0.08),
+        layers.RandomZoom(0.1),
+        layers.RandomBrightness(0.15),
+        layers.RandomContrast(0.15),
+        layers.RandomTranslation(0.05, 0.05),
+    ],
+    name="augmentation",
+)
 
-    print(images.shape)
-    images = images.astype('float32')/255.0
-    labels = tf.keras.utils.to_categorical(labels)
-    return(images, labels, outputs)
 
-directory = "C:/Users/HP/Desktop/coding/fmlab/ISL translator project/dataset/Training"
-images, labels, number_of_outputs = load_images(directory)   # file path containing training image data folder
+def augment(image, label):
+    return data_augmentation(image, training=True), label
