@@ -21,17 +21,22 @@ ENV/
 *.ipynb_checkpoints
 
 # --- Dataset (large media files, don't commit) ---
+dataset
 dataset/Indian/
 dataset/Training/
 dataset/Validation/
 dataset/Testing/
 dataset/landmarks/
 dataset/Letters/
+dataset\ISL_CSLRT_Corpus
 *.mp4
 *.avi
 *.mov
 *.npy
 *.npz
+dataset/Word_Training/
+dataset/Word_Validation/
+dataset/Word_Testing/
 
 # Keep folder structure in git without committing images:
 # add a .gitkeep inside each folder and uncomment these
