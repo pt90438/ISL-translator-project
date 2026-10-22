@@ -37,6 +37,7 @@ dataset\ISL_CSLRT_Corpus
 dataset/Word_Training/
 dataset/Word_Validation/
 dataset/Word_Testing/
+bad_images/Testing
 
 # Keep folder structure in git without committing images:
 # add a .gitkeep inside each folder and uncomment these

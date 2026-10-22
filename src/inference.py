@@ -36,7 +36,7 @@ MP_MODEL_PATH = ROOT / "checkpoints" / "hand_landmarker.task"
 
 # ── Inference settings ───────────────────────────────────────────────────────
 IMG_SIZE       = 224
-CONF_THRESHOLD = 0.85
+CONF_THRESHOLD = 0.92
 SMOOTH_FRAMES  = 10
 COOLDOWN_SEC   = 1.5
 HAND_PADDING   = 30
