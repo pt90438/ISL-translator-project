@@ -85,15 +85,10 @@ def countdown_and_capture(cap, frame, letter, path, seconds):
         cv2.imshow("ISL — Personal Capture", frame)
         cv2.waitKey(1000)
 
-    # Flash green on capture
+    # Capture a clean frame immediately after countdown
     ret, frame = cap.read()
     if ret:
         frame = cv2.flip(frame, 1)
-        flash = frame.copy()
-        flash[:] = (0, 220, 0)
-        cv2.addWeighted(flash, 0.3, frame, 0.7, 0, frame)
-        cv2.imshow("ISL — Personal Capture", frame)
-        cv2.waitKey(200)
         cv2.imwrite(str(path), frame)
         return frame
     return None

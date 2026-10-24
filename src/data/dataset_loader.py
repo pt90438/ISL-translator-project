@@ -15,9 +15,9 @@ def load_split(path, shuffle):
     )
 
 
-TRAIN_DIR = "Training"
-VAL_DIR = "Validation"
-TEST_DIR = "Testing"
+TRAIN_DIR = "Combined_Training"
+VAL_DIR   = "Combined_Validation"
+TEST_DIR  = "Combined_Testing"
 
 
 def get_datasets(data_dir):

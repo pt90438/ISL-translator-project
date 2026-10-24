@@ -8,9 +8,13 @@ and checkpoints/class_names_landmarks.json
 """
 import collections
 import json
+import sys
 import time
 import urllib.request
 from pathlib import Path
+
+# Allow importing contribute_tab from the same folder
+sys.path.insert(0, str(Path(__file__).parent))
 
 import cv2
 import mediapipe as mp
@@ -22,8 +26,8 @@ import tensorflow as tf
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 ROOT          = Path(__file__).resolve().parents[1]
-MODEL_PATH    = ROOT / "checkpoints" / "best_landmark_model.keras"
-NAMES_PATH    = ROOT / "checkpoints" / "class_names_landmarks.json"
+MODEL_PATH    = ROOT / "checkpoints" / "best_model.keras"
+NAMES_PATH    = ROOT / "checkpoints" / "class_names.json"
 MP_MODEL_PATH = ROOT / "checkpoints" / "hand_landmarker.task"
 MP_MODEL_URL  = ("https://storage.googleapis.com/mediapipe-models/"
                  "hand_landmarker/hand_landmarker/float16/latest/"
@@ -38,7 +42,7 @@ HAND_PADDING   = 20
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="ISL Translator",
-    # page_icon="",
+    page_icon="🤟",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -51,7 +55,7 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 
 .letter-display {
-    font-family: 'Javanese Text', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 7rem;
     font-weight: 700;
     line-height: 1;
@@ -61,14 +65,14 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     letter-spacing: -4px;
 }
 .conf-display {
-    font-family: 'Javanese Text', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 1.1rem;
     color: #888;
     text-align: center;
     margin-top: -0.5rem;
 }
 .text-buffer {
-    font-family: 'Javanese Text', monospace;
+    font-family: 'Space Mono', monospace;
     font-size: 1.6rem;
     background: #0e0e0e;
     border: 1px solid #222;
@@ -84,7 +88,7 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
     padding: 2px 10px;
     border-radius: 20px;
     font-size: 0.75rem;
-    font-family: 'Javanese Text', monospace;
+    font-family: 'Space Mono', monospace;
 }
 .pill-confirmed { background: #00e5a020; color: #00e5a0; border: 1px solid #00e5a040; }
 .pill-waiting   { background: #ffffff10; color: #888;    border: 1px solid #ffffff20; }
@@ -108,7 +112,6 @@ def load_resources():
     download_mp_model()
     model       = tf.keras.models.load_model(MODEL_PATH)
     class_names = json.loads(NAMES_PATH.read_text())
-
     base_options = mp_python.BaseOptions(model_asset_path=str(MP_MODEL_PATH))
     options = mp_vision.HandLandmarkerOptions(
         base_options=base_options,
@@ -141,13 +144,9 @@ def crop_hand(frame, landmarks, h, w):
 
 
 def preprocess(crop):
-    gray    = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-    gray    = cv2.equalizeHist(gray)
-    resized = cv2.resize(gray, (28, 28))
-    corners = [resized[0,0], resized[0,-1], resized[-1,0], resized[-1,-1]]
-    if np.mean(corners) > resized[10:18, 10:18].mean():
-        resized = 255 - resized
-    return resized.astype(np.float32).reshape(1, 28, 28, 1) / 255.0
+    img = cv2.resize(crop, (224, 224))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    return np.expand_dims(img.astype(np.float32), axis=0)
 
 
 def draw_skeleton(frame, hand_landmarks_list):
@@ -183,12 +182,15 @@ def init_state():
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
+    # Keep pred_buffer maxlen in sync with slider value
+    if len(st.session_state.pred_buffer) == 0:
+        st.session_state.pred_buffer = collections.deque(maxlen=SMOOTH_FRAMES)
 
 init_state()
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("# ISL Translator")
+    st.markdown("## 🤟 ISL Translator")
     st.markdown("---")
 
     conf_thresh = st.slider(
@@ -235,34 +237,40 @@ with st.sidebar:
 
 # ── Main layout ───────────────────────────────────────────────────────────────
 st.markdown("# ISL Translator")
+tab_translator, tab_contribute = st.tabs(["🤟 Translator", "📸 Contribute"])
 
-col_feed, col_panel = st.columns([3, 2], gap="large")
+with tab_contribute:
+    from contribute_tab import render_contribute_tab
+    render_contribute_tab()
 
-with col_panel:
-    st.markdown("#### Detected sign")
-    letter_slot = st.empty()
-    conf_slot   = st.empty()
-    status_slot = st.empty()
+with tab_translator:
+    col_feed, col_panel = st.columns([3, 2], gap="large")
 
-    st.markdown("#### Text")
-    buffer_slot = st.empty()
+    with col_panel:
+        st.markdown("#### Detected sign")
+        letter_slot = st.empty()
+        conf_slot   = st.empty()
+        status_slot = st.empty()
 
-    if show_debug:
-        st.markdown("#### Model input (28×28)")
-        debug_slot = st.empty()
+        st.markdown("#### Text")
+        buffer_slot = st.empty()
 
-with col_feed:
-    feed_slot   = st.empty()
-    start_col, stop_col = st.columns(2)
-    with start_col:
-        start_btn = st.button("▶ Start", use_container_width=True, type="primary")
-    with stop_col:
-        stop_btn  = st.button("⏹ Stop", use_container_width=True)
+        if show_debug:
+            st.markdown("#### Model input (28×28)")
+            debug_slot = st.empty()
 
-    if start_btn:
-        st.session_state.running = True
-    if stop_btn:
-        st.session_state.running = False
+    with col_feed:
+        feed_slot   = st.empty()
+        start_col, stop_col = st.columns(2)
+        with start_col:
+            start_btn = st.button("▶ Start", use_container_width=True, type="primary")
+        with stop_col:
+            stop_btn  = st.button("⏹ Stop", use_container_width=True)
+
+        if start_btn:
+            st.session_state.running = True
+        if stop_btn:
+            st.session_state.running = False
 
 # ── Inference loop ────────────────────────────────────────────────────────────
 if st.session_state.running:
@@ -277,7 +285,7 @@ if st.session_state.running:
         st.error("Cannot open webcam. Try a different camera index.")
         st.stop()
 
-    pred_buffer = collections.deque(maxlen=smooth)
+    pred_buffer = st.session_state.pred_buffer
 
     while st.session_state.running:
         ret, frame = cap.read()
@@ -383,7 +391,7 @@ if st.session_state.running:
 else:
     # Idle state
     letter_slot.markdown(
-        '<div class="letter-display" style="color:#222"></div>',
+        '<div class="letter-display" style="color:#222">🤟</div>',
         unsafe_allow_html=True
     )
     buf = st.session_state.text_buffer
